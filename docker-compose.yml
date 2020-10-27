@@ -1,0 +1,34 @@
+version: "3"
+
+services:
+  flask:
+    build:
+        context: .
+        dockerfile: "./Dockerfile"
+    ports:
+      - "5000:5000"
+      #  host:container
+    entrypoint: /loginapi/entrypoint.sh
+    volumes:
+      - .:/loginapi
+    links:
+      - db
+  db:
+    image: mongo:latest
+    ports:
+    - "27017:27017"
+    volumes:
+    - ./data:/data/db
+
+  web_server:
+    build: ./nginx
+#    image: nginx:latest
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+    - ./nginx/conf.d/:/etc/nginx/conf.d/
+    depends_on:
+      - flask
+
+
