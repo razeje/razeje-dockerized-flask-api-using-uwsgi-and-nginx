@@ -174,16 +174,35 @@ class AddRole(Resource):
             return make_response(json.dumps({'message': 'internal server error'}), 500)
 
 
+class EditRole(Resource):
+    def post(self):
+        try:
+            role = request.json['role']
+            new_role = request.json['new_role']
+            date = str(datetime.datetime.now())
+            rolee = mongo.db.role.find_one({'role': role})
+            user_role = mongo.db.role.find({'role': role})
+            if rolee is not None and user_role is None:
+                result = mongo.db.role.update_one({'role':role}, {"$set":{"role":new_role , "date":date}})
+                if result is not None:
+                    return make_response(json.dumps({'message': 'role name updated'}), 200)
+            return make_response(json.dumps({'message':'role doesnt exists OR already assigned to some user'}))
+        except:
+            return make_response(json.dumps({'message': 'internal server error'}), 500)
+
+
+
 class DeleteRole(Resource):
     def post(self):
         try:
             role = request.json['role']
             rolee = mongo.db.role.find_one({'role': role})
-            if rolee:
+            user_role = mongo.db.role.find({'role':role})
+            if rolee is not None and user_role is None:
                 result = mongo.db.role.delete_one({'role': role})
                 if result is not None:
                     return make_response(json.dumps({'message': 'role removed'}), 200)
-            return make_response(json.dumps({'message': 'role doesnt exists'}), 200)
+            return make_response(json.dumps({'message': 'role doesnt exists OR role already assigned to user'}), 200)
         except:
             return make_response(json.dumps({'message: internal server error'}), 500)
 
@@ -252,6 +271,7 @@ api.add_resource(ForgotPassword,'/forgot-password')
 api.add_resource(AddUser,'/add-user')
 api.add_resource(DeleteUser,'/delete-user')
 api.add_resource(AddRole,'/add-role')
+api.add_resource(EditRole,'/edit-role')
 api.add_resource(DeleteRole,'/delete-role')
 api.add_resource(AddUserRole,'/add-user-role')
 api.add_resource(DeleteUserRole,'/delete-user-role')
